@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Feb  9 18:00:03 2020
+
+@author: zack
+"""
+
+import numpy as np
+import scipy.linalg as linalg
+import scipy as scipy
+
+# %% 1)
+A = 2*np.matrix([[0,1,1,0],[1,1,0,0],[0,0,1,1],[0,0,1,0]])
+b_vec = np.log(np.array([0.183, 0.15, 0.123, 0.907])/10)
+rho_vec = np.linalg.solve(A,b_vec)
+print("The densities are: " + str(rho_vec))
+
+# %% 2)
+A = np.matrix([[2,0.333333,7.16667],[3,2,1],[1,2.66667,-2.66667]])
+P,L,U=linalg.lu(A); P=P.T;
+print("P:")
+print(P)
+print("\nL:")
+print(L)
+print("\nU:")
+print(U)
+b_vec = np.array([3,7,5])
+x_vec = np.linalg.solve(A,b_vec)
+print("\nx_vec = "+str(x_vec))
+
+# %% 3)
+S_jac = np.matrix([[328,0,0],[0,246,0],[0,0,385]])
+T_jac = np.matrix([[0,-34,-64],[-34,0,-199],[-64,-199,0]])
+jac_eigenvals = np.linalg.eigvals(np.linalg.inv(S_jac)@T_jac)
+print("Jacobi Eigenvalues: ")
+print(jac_eigenvals)
+
+S_gs = np.matrix([[328,0,0],[34,246,0],[64,199,385]])
+T_gs = np.matrix([[0,-34,-64],[0,0,-199],[0,0,0]])
+gs_eigenvals = np.linalg.eigvals(np.linalg.inv(S_gs)@T_gs)
+print("Gauss-Seidel Eigenvalues: ")
+print(gs_eigenvals)
+
+# c) Modified code from course website
+## solving linear equations using Gauss-Seidel iterations example
+## APM120, Eli Tziperman, 201709
+import numpy as np
+from numpy import linalg
+
+## set up matrix equation (build a symmetric matrix for which G-S
+## typically works better):
+A=np.array([[328,34,64],[34,246,199],[64,199,385]]);
+b =np.array([8, 6, 5]);
+
+## G-S iteration matrices (A=S-T), and the eigenvalues of S^{-1}T:
+S=np.tril(A,0)
+T=S-A;
+SinvT=np.linalg.inv(S)@T;
+print('eigenvalues of S^{-1}T: '); 
+print(np.abs(np.linalg.eigvals(SinvT)))
+
+## demonstrate iterations, starting with initial guess:
+Xk=np.array([1,2,3])
+
+print('actual solution: '+repr(np.linalg.solve(A,b)));
+print('Iterative solution:');
+k=0; print('k='+repr(k)+'; X[k]= '+repr(Xk));
+for k in range(1,4):
+  Xkp1=np.linalg.solve(S,T@Xk+b); Xk=Xkp1;
+  print('k='+repr(k)+'; X[k]='+repr(Xkp1)); 
+  print(' error='+repr(np.linalg.norm(np.linalg.solve(A,b)-Xkp1)))
+
+print('actual solution: '+repr(np.linalg.solve(A,b)))
+
+# %% 4)
+import numpy as np;
+from numpy import linalg; 
+import scipy as scipy; 
+import matplotlib.pyplot as plt; 
+import matplotlib;
+
+import time; # Imports the python time library
+N=2250; # Create a variable N and assign it a value
+np.random.seed(4563); # Set a seed value for generating random numbers
+A=np.random.random((N,N)); # Generate an NxN matrix of random values [0,1)
+A=(A.T+A)/2; # Set A to equal transpose(A) plus A all divided by 2
+A[np.abs(A)<0.98]=0; # Set all values in A with absolute values less than 0.98
+                     # to 0
+A[A!=0]=(A[A!=0]-np.mean(A[A!=0]))*1000; # Set all values of A that are not 
+                                         # equal to their current values minus  
+                                         # the mean of all such values times
+                                         # 1000
+Asp=scipy.sparse.coo_matrix(A); # Create a scipy sparse matrix for A
+print(np.count_nonzero(A)); # Print the number of non-zero elements in A
+plt.figure(1); # Create a new figure
+plt.clf(); # Clear that figure
+plt.plot(A[A!=0],'.',markersize=1); # Plot a scatter plot of all non-zero values
+                                    # of A
+t=time.time(); # Set t equal to the current time
+X=A@A@A@A@A ; # Set X equal to A^6
+elapsed=time.time()-t; # Set elapsed equal to the elapsed time since t
+print(elapsed); # Print the elapsed time
+t=time.time(); # Start another time point
+Xsp=Asp@Asp@Asp@Asp@Asp; # Calculate A^5 using sparse matrices and store it as
+                         # a sparse matrix
+elapsed=time.time()-t;  # Calculate the new elapsed time
+print(elapsed); # Print the elapsed time
+
+# %% 5)
+"""To calculate the number of mutual friends each person had, I would start 
+with a matrix where each row is a person and the values of each column in that
+row indicate whether or not someone is friends with the person whose row 
+cooresponds to that column. The first step would be to MAP into key:value pairs.
+For example, maybe we will have each proccessor calculate all the mutual friends
+within a single row for each possible friend pair within that row. The next step,
+which is SHUFFLE, is to combine all the different values found for each key.
+Finally, the last step is to REDUCE, by which we mean take the intersection of 
+all the values for each key to give only the unique mutual friend values of that
+key. Once this is done, to find the number of mutual friends between any two people
+you just add up the number of elements in the value for that key."""
